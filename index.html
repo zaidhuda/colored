@@ -3,6 +3,7 @@
     <title>Colored</title>
     <meta name="description" content="Simple colored page">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Overpass+Mono:300" rel="stylesheet">
 
     <style>
       body {
@@ -11,23 +12,22 @@
         flex-direction: column;
       }
       body * {
-        font-family: serif;
+        font-family: 'Overpass Mono', monospace;
       }
       main {
-        margin: auto 100px;
         flex: 1 0 auto;
+        display: flex;
+        justify-content: center;
+      }
+      .content {
+        margin: auto;
+        text-align: center;
       }
       .color {
         text-align: center;
         padding: 0;
         border: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: 0;
-        width: 100%;
+        width: 40%;
       }
       .color:focus {
         outline: none;
@@ -68,7 +68,9 @@
   </head>
   <body>
     <main>
-      <input id="colorCode" type="text" class="color" value="#FFFFFF" />
+      <div class="content">
+        <input id="colorCode" type="text" class="color" />
+      </div>
     </main>
     <footer>
       <a href="http://zaidhuda.com" target="_blank">zaidhuda.com</a>&nbsp;
@@ -77,55 +79,43 @@
     <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src='./jqColorPicker.min.js'></script>
     <script>
-      function getParameterByName(name, url) {
-        if (!url) url = window.location.href;
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&]*)|&|$)"),
-          results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-      }
-
-      function colorChangedCallback() {
-        var color = $('#colorCode').val();
-        $('#shareLink').prop('href', '?color=' + color.replace(/\s/g,''));
-        $(document).attr("title", color);
-      }
-
-      var defaultColor = '#FFF';
-
-      if (getParameterByName('color')){
-        defaultColor = getParameterByName('color');
-        $('#colorCode').val(defaultColor);
-        // $('body *').css('color', colors. );
-        $('#colorCode').css('background', defaultColor);
-        colorChangedCallback();
-      }
-
-      $('body').on('input', function(){
-        console.log(this.value)
-      })
-
-      $picker = $('.color').colorPicker({
-        color: defaultColor,
-        renderCallback: function() {
-          colorChangedCallback();
-        },
-        positionCallback: function($elm) {
-          var $UI = this.$UI, // this is the instance; this.$UI is the colorPicker DOMElement
-            position = $elm.offset(), // $elm is the current trigger that opened the UI
-            gap = this.color.options.gap, // this.color.options stores all options
-            top = 0,
-            right = 0;
-
-          // $UI.appendTo('#somwhereElse');
-          return {
-            top: top,
-            right: right
-          }
+      $(function() {
+        function colorChangedCallback() {
+          var color = $('#colorCode').val();
+          parent.location.hash = color;
+          $(document).attr("title", color);
+          $('body').css("background-color", color);
+          $('#shareLink').prop('href', color);
         }
-      });
+
+        function randomColor() {
+          var hex = Math.floor(Math.random()*16777215).toString(16).toUpperCase();
+          while(hex.length < 6) hex = '0' + hex;
+          return '#' + hex;
+        }
+
+        function intialize() {
+          var defaultColor = parent.location.hash || randomColor();
+          $('#colorCode').val(defaultColor);
+          colorChangedCallback();
+
+          $picker = $('.color').colorPicker({
+            color: $('#colorCode').val(),
+            opacity: false,
+            renderCallback: function() {
+              colorChangedCallback();
+            },
+            positionCallback: function($elm) {
+              console.log($elm.offset())
+              var x = $(window).width() / 2 - 70;
+              var y = $elm.offset().top + $elm.height();
+              return {top: y, left: x}; // positions colorPicker before appearing
+            }
+          });
+        }
+
+        intialize();
+      })
     </script>
   </body>
 </html>
